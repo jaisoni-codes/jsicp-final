@@ -1,0 +1,44 @@
+﻿# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+*.egg-info/
+venv/
+.venv/
+
+# Environment
+.env.local
+.env.production
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Database
+*.sqlite
+*.db
+
+# Uploaded media (keep folder)
+services/backend-server/uploads/*
+!services/backend-server/uploads/.gitkeep

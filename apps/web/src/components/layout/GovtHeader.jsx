@@ -1,0 +1,382 @@
+﻿import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth, getPortalPath } from "../../context/AuthContext";
+import { useApp } from "../../context/AppContext";
+import { ShieldCheck, User as UserIcon, LogOut, ChevronDown, Globe, Bell, FileCheck, Sun, Moon, MessageSquare } from "lucide-react";
+export const GovtHeader = () => {
+    const { currentUser, isAuthenticated, logout, loginAsRole, demoUsers } = useAuth();
+    const { currentLanguage, setCurrentLanguage, notifications, markNotificationAsRead, theme, toggleTheme, setWhatsappSimulatorOpen } = useApp();
+    const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+    const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+    const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+    const notifRef = useRef(null);
+    const roleRef = useRef(null);
+    const langRef = useRef(null);
+    const [fontSize, setFontSize] = useState(() => {
+        return localStorage.getItem("jsicp_font_size") || "normal";
+    });
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notifRef.current && !notifRef.current.contains(event.target)) {
+                setNotifDropdownOpen(false);
+            }
+            if (roleRef.current && !roleRef.current.contains(event.target)) {
+                setRoleDropdownOpen(false);
+            }
+            if (langRef.current && !langRef.current.contains(event.target)) {
+                setLangDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const applyFontSize = (size) => {
+        setFontSize(size);
+        try {
+            localStorage.setItem("jsicp_font_size", size);
+            if (size === "small") {
+                document.documentElement.style.fontSize = "14px";
+            } else if (size === "larger") {
+                document.documentElement.style.fontSize = "18px";
+            } else {
+                document.documentElement.style.fontSize = "16px";
+            }
+        } catch (e) {
+            console.error("Failed to set font size:", e);
+        }
+    };
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem("jsicp_font_size") || "normal";
+        applyFontSize(saved);
+    }, []);
+
+    const handleRoleSwitch = (roleKey) => {
+        loginAsRole(roleKey);
+        setRoleDropdownOpen(false);
+        navigate(getPortalPath(roleKey));
+    };
+    const unreadNotifs = notifications.filter((n) => n.status !== "read");
+    return (<header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+      {/* 1. Top Government of India & Jharkhand Strip */}
+      <div className="bg-[#0b1d33] text-slate-200 text-[11px] px-4 sm:px-8 py-1.5 flex flex-wrap items-center justify-between border-b border-[#163b5f]">
+        <div className="flex items-center space-x-3">
+          <span className="font-semibold text-slate-100 flex items-center space-x-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+            <span>झारखंड सरकार | Government of Jharkhand</span>
+          </span>
+          <span className="text-slate-500">|</span>
+          <span className="text-slate-300 hidden md:inline">
+            उच्च एवं तकनीकी शिक्षा विभाग (Dept. of Higher & Technical Education)
+          </span>
+        </div>
+
+        {/* Accessibility & Language */}
+        <div className="flex items-center space-x-3">
+          <div className="hidden sm:flex items-center space-x-1.5 text-slate-300 text-[10px]" data-no-translate="true">
+            <span className="text-slate-400">Font:</span>
+            <button 
+              onClick={() => applyFontSize("small")} 
+              title="Decrease font size (A-)" 
+              className={`px-1.5 py-0.5 rounded transition ${fontSize === "small" ? "font-bold text-amber-300 bg-slate-800 border border-amber-400/40" : "hover:bg-slate-800 text-slate-300"}`}>
+              A-
+            </button>
+            <button 
+              onClick={() => applyFontSize("normal")} 
+              title="Normal font size (A)" 
+              className={`px-1.5 py-0.5 rounded transition ${fontSize === "normal" ? "font-bold text-amber-300 bg-slate-800 border border-amber-400/40" : "hover:bg-slate-800 text-slate-300"}`}>
+              A
+            </button>
+            <button 
+              onClick={() => applyFontSize("larger")} 
+              title="Increase font size (A+)" 
+              className={`px-1.5 py-0.5 rounded transition ${fontSize === "larger" ? "font-bold text-amber-300 bg-slate-800 border border-amber-400/40" : "hover:bg-slate-800 text-slate-300"}`}>
+              A+
+            </button>
+          </div>
+
+          <span className="text-slate-600 hidden sm:inline">|</span>
+
+          {/* Dark / Light Theme Toggle */}
+          <button 
+            onClick={toggleTheme} 
+            data-no-translate="true"
+            className="flex items-center space-x-1.5 px-2 py-0.5 rounded text-slate-200 hover:bg-slate-800 text-[10px] font-medium border border-slate-700 bg-slate-800/60 transition"
+            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            aria-label="Toggle Dark / Light Theme"
+          >
+            {theme === "dark" ? (
+              <>
+                <Sun className="w-3 h-3 text-amber-300" />
+                <span className="font-semibold text-amber-200">Light</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-3 h-3 text-sky-300" />
+                <span className="font-semibold text-slate-200">Dark</span>
+              </>
+            )}
+          </button>
+
+          {/* Language Switcher */}
+          <div 
+            ref={langRef}
+            className="relative" 
+            data-no-translate="true"
+            onMouseLeave={() => setLangDropdownOpen(false)}
+          >
+            <button 
+              onClick={() => setLangDropdownOpen(!langDropdownOpen)} 
+              className="flex items-center space-x-1.5 px-2 py-0.5 rounded text-slate-200 hover:bg-slate-800 text-[10px] font-medium border border-slate-700 bg-slate-800/60 transition"
+              title="Change Language"
+            >
+              <Globe className="w-3 h-3 text-emerald-400"/>
+              <span className="font-semibold">
+                {currentLanguage === "en" ? "English" : currentLanguage === "hi" ? "हिन्दी" : currentLanguage === "nagpuri" ? "नागपुरी" : "संताली"}
+              </span>
+              <ChevronDown className="w-2.5 h-2.5 text-slate-400"/>
+            </button>
+            {langDropdownOpen && (
+              <div className="absolute right-0 mt-1 w-36 bg-white text-slate-800 rounded shadow-xl border border-slate-200 py-1.5 z-50 text-[11px]" data-no-translate="true">
+                <div className="px-3 py-1 text-[9px] uppercase font-bold text-slate-400 border-b border-slate-100">
+                  Select Language
+                </div>
+                <button 
+                  onClick={() => { setCurrentLanguage("en"); setLangDropdownOpen(false); }} 
+                  className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between transition ${currentLanguage === "en" ? "font-bold text-blue-900 bg-blue-50" : "text-slate-700"}`}>
+                  <span>English</span>
+                  {currentLanguage === "en" && <span className="text-blue-600 font-bold">✓</span>}
+                </button>
+                <button 
+                  onClick={() => { setCurrentLanguage("hi"); setLangDropdownOpen(false); }} 
+                  className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between transition ${currentLanguage === "hi" ? "font-bold text-blue-900 bg-blue-50" : "text-slate-700"}`}>
+                  <span>हिन्दी (Hindi)</span>
+                  {currentLanguage === "hi" && <span className="text-blue-600 font-bold">✓</span>}
+                </button>
+                <button 
+                  onClick={() => { setCurrentLanguage("nagpuri"); setLangDropdownOpen(false); }} 
+                  className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between transition ${currentLanguage === "nagpuri" ? "font-bold text-blue-900 bg-blue-50" : "text-slate-700"}`}>
+                  <span>नागपुरी (Nagpuri)</span>
+                  {currentLanguage === "nagpuri" && <span className="text-blue-600 font-bold">✓</span>}
+                </button>
+                <button 
+                  onClick={() => { setCurrentLanguage("santali"); setLangDropdownOpen(false); }} 
+                  className={`w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center justify-between transition ${currentLanguage === "santali" ? "font-bold text-blue-900 bg-blue-50" : "text-slate-700"}`}>
+                  <span>संताली (Santali)</span>
+                  {currentLanguage === "santali" && <span className="text-blue-600 font-bold">✓</span>}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Official Portal Identity Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo & Seal */}
+          <Link to="/" className="flex items-center space-x-3.5 group">
+            <img 
+              src="/jharkhand_seal_hd.png" 
+              alt="Government of Jharkhand Official Emblem" 
+              className="w-12 h-12 object-contain drop-shadow-sm shrink-0 transition-transform group-hover:scale-105" 
+            />
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-heading font-extrabold text-base sm:text-lg text-[#0f2942] tracking-tight">
+                  JSICP
+                </span>
+                <span className="bg-[#f1f5f9] text-[#0f2942] text-[10px] font-bold px-2 py-0.5 rounded border border-slate-300">
+                  {currentLanguage === "en" ? "Jharkhand Portal" : "झारखंड पोर्टल"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-700 font-medium leading-tight">
+                {currentLanguage === "en" ? "Jharkhand Societal Innovation Collaboration Portal" : "झारखंड सामाजिक नवाचार सहयोग पोर्टल"}
+              </p>
+              <p className="text-[10px] text-slate-500 hidden sm:block">
+                Jharkhand Societal Innovation Collaboration Portal • SIH 2026
+              </p>
+            </div>
+          </Link>
+
+          {/* Right Action Area */}
+          <div className="flex items-center space-x-3">
+            {isAuthenticated && currentUser ? (<>
+                {/* Notification Bell */}
+                <div 
+                  ref={notifRef}
+                  className="relative"
+                  onMouseLeave={() => setNotifDropdownOpen(false)}
+                >
+                  <button 
+                    onClick={() => setNotifDropdownOpen(!notifDropdownOpen)} 
+                    className="p-2 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition relative" 
+                    title="Notifications"
+                  >
+                    <Bell className="w-4 h-4"/>
+                    {unreadNotifs.length > 0 && (<span className="absolute top-1 right-1 w-3.5 h-3.5 bg-rose-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        {unreadNotifs.length}
+                      </span>)}
+                  </button>
+
+                  {notifDropdownOpen && (
+                    <div 
+                      className="absolute right-0 top-full pt-1 w-80 z-50 text-xs"
+                      onMouseEnter={() => setNotifDropdownOpen(true)}
+                    >
+                      <div className="bg-white rounded shadow-xl border border-slate-200 py-2">
+                        <div className="px-3 py-2 border-b border-slate-100 font-bold text-slate-800 flex justify-between">
+                          <span>Official Alerts</span>
+                          <span className="text-slate-500 font-normal">{notifications.length} total</span>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
+                          {notifications.slice(0, 4).map((n) => (<div key={n.id} onClick={() => markNotificationAsRead(n.id)} className={`p-2.5 hover:bg-slate-50 cursor-pointer ${n.status !== "read" ? "bg-amber-50/50" : ""}`}>
+                              <div className="flex justify-between text-[11px] font-semibold text-slate-900">
+                                <span>{n.title}</span>
+                                <span className="uppercase text-[9px] text-slate-500 font-mono">{n.channel}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">{n.message}</p>
+                            </div>))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Role Switcher & User Profile */}
+                <div 
+                  ref={roleRef}
+                  className="relative"
+                  onMouseLeave={() => setRoleDropdownOpen(false)}
+                >
+                  <button 
+                    onClick={() => setRoleDropdownOpen(!roleDropdownOpen)} 
+                    className="flex items-center space-x-2 bg-[#f8fafc] hover:bg-slate-100 border border-slate-300 px-2.5 py-1.5 rounded transition"
+                  >
+                    <div className="w-6 h-6 rounded bg-[#0f2942] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                      {currentUser.fullName[0]}
+                    </div>
+                    <div className="text-left hidden md:block">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-xs font-bold text-slate-900 max-w-[120px] truncate">
+                          {currentUser.fullName}
+                        </span>
+                        {currentUser.aadhaarVerified && (<span title="DigiLocker / Aadhaar eKYC Verified">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700"/>
+                          </span>)}
+                      </div>
+                      <span className="text-[10px] text-slate-500 block truncate max-w-[120px]">
+                        {currentUser.roleTitle}
+                      </span>
+                    </div>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-500"/>
+                  </button>
+
+                  {roleDropdownOpen && (
+                    <div 
+                      className="absolute right-0 top-full pt-1 w-80 z-50 text-xs"
+                      onMouseEnter={() => setRoleDropdownOpen(true)}
+                    >
+                      <div className="bg-white rounded shadow-xl border border-slate-200 py-2">
+                        <div className="px-3.5 py-2 border-b border-slate-100 bg-slate-50 text-slate-700">
+                          <span className="font-bold text-[11px] text-slate-800 uppercase tracking-wider block">
+                            Switch Dedicated Stakeholder Portal:
+                          </span>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Test the system from each actor isolated workspace:
+                          </p>
+                        </div>
+
+                        <div className="py-1 max-h-80 overflow-y-auto divide-y divide-slate-100">
+                          {[
+                      {
+                          category: "🏛️ BIT Mesra Ecosystem (Water, Environment & IoT)",
+                          keys: ["hei_nodal", "faculty", "student", "student_priya", "student_sneha", "student_amit"]
+                      },
+                      {
+                          category: "⛏️ IIT (ISM) Dhanbad Ecosystem (Mining Tech & Robotics)",
+                          keys: ["hei_iit_dhanbad", "faculty_iit", "student_iit_rohan", "student_iit_ananya", "student_iit_vikas"]
+                      },
+                      {
+                          category: "🏥 AIIMS Deoghar Ecosystem (MedTech & Cold-Chain)",
+                          keys: ["hei_aiims_deoghar", "faculty_aiims", "student_aiims_deepak", "student_aiims_kavita"]
+                      },
+                      {
+                          category: "🌾 Birsa Agricultural University - BAU (AgriTech & Bio-Processing)",
+                          keys: ["hei_bau_ranchi", "faculty_bau", "student_bau_birsa", "student_bau_pooja"]
+                      },
+                      {
+                          category: "🏭 Industry & CSR Co-Funding Anchors",
+                          keys: ["industry"]
+                      },
+                      {
+                          category: "🏛️ State Apex Command & District Administration",
+                          keys: ["govt_admin"]
+                      },
+                      {
+                          category: "👥 Grassroots Citizens & Panchayati Raj (PRI)",
+                          keys: ["citizen", "pri"]
+                      }
+                  ].map((grp) => (<div key={grp.category} className="py-1">
+                              <span className="px-3.5 py-0.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider block bg-slate-50/70">
+                                {grp.category}
+                              </span>
+                              {grp.keys.map((roleKey) => {
+                          const u = demoUsers[roleKey];
+                          if (!u)
+                              return null;
+                          const isActive = currentUser.id === u.id;
+                          return (<button key={roleKey} onClick={() => handleRoleSwitch(roleKey)} className={`w-full text-left px-3.5 py-1.5 hover:bg-blue-50/60 transition flex items-center space-x-2 ${isActive ? "bg-blue-50 font-bold border-l-2 border-[#0f2942]" : ""}`}>
+                                    <div className="w-5 h-5 rounded bg-slate-200 text-slate-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+                                      {u.fullName[0]}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-slate-900 truncate">
+                                          {u.fullName}
+                                        </span>
+                                        <span className="text-[8px] bg-slate-100 text-slate-500 font-mono px-1 rounded uppercase">
+                                          {roleKey.replace("student_", "").replace("hei_", "")}
+                                        </span>
+                                      </div>
+                                      <p className="text-[10px] text-slate-500 truncate">{u.roleTitle}</p>
+                                    </div>
+                                  </button>);
+                      })}
+                            </div>))}
+                        </div>
+
+                        <div className="px-3 py-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          <button onClick={() => {
+                      logout();
+                      navigate("/login");
+                      setRoleDropdownOpen(false);
+                  }} className="flex items-center space-x-1 text-rose-700 hover:text-rose-900 font-semibold">
+                            <LogOut className="w-3.5 h-3.5"/>
+                            <span>Sign Out</span>
+                          </button>
+                          <span className="text-[10px] text-slate-400 font-mono">DigiLocker SSO</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>) : (<div className="flex items-center space-x-2">
+                <button onClick={() => setWhatsappSimulatorOpen(true)} className="hidden sm:inline-flex items-center space-x-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-xs"><MessageSquare className="w-3.5 h-3.5"/><span>WhatsApp AI</span></button><Link to="/track" className="hidden sm:inline-flex items-center space-x-1 px-3 py-1.5 border border-slate-300 rounded text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                  <FileCheck className="w-3.5 h-3.5"/>
+                  <span>Track Complaint</span>
+                </Link>
+                <Link to="/login" className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#0f2942] hover:bg-[#163b5f] text-white rounded text-xs font-semibold shadow-xs">
+                  <UserIcon className="w-3.5 h-3.5"/>
+                  <span>Sign In / Parichay SSO</span>
+                </Link>
+              </div>)}
+          </div>
+        </div>
+      </div>
+    </header>);
+};
+
